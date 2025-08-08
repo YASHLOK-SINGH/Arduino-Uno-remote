@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Uno Remote Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .logo-text p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+
+        .status-indicator.connected {
+            background: #2ed573;
+        }
+
+        .connection-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connection-select {
+            padding: 10px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .connection-select:focus {
+            border-color: #4CAF50;
+        }
+
+        .connect-btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .connect-btn.disconnected {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: #4CAF50;
+        }
+
+        .digital-pins {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .pin {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pin-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #e1e8ed;
+            border-radius: 15px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .pin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pin-btn.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border-color: #45a049;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .pin-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .analog-section {
+            margin-top: 20px;
+        }
+
+        .analog-pins {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .analog-pin {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .analog-label {
+            width: 40px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .analog-slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e1e8ed;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .analog-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .analog-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .analog-value {
+            width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .control-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn i {
+            font-size: 20px;
+        }
+
+        .control-btn.run.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .control-btn.stop.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .sensor-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            font-size: 12px;
+        }
+
+        .sensor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sensor-btn i {
+            font-size: 16px;
+        }
+
+        .status-panel {
+            margin-top: 25px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f2f6;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .status-value {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-value.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-value.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-value.running {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-value.stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-actions-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .quick-actions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .quick-action-btn {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .digital-pins {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .control-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .sensor-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .digital-pins {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .sensor-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .connection-status {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Arduino Uno Controller</h1>
+                        <p>Remote control for Arduino projects</p>
+                    </div>
+                </div>
+                
+                <div class="connection-status">
+                    <div class="connection-info">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span id="statusText">Disconnected</span>
+                    </div>
+                    
+                    <select class="connection-select" id="connectionType">
+                        <option value="bluetooth">Bluetooth</option>
+                        <option value="wifi">WiFi</option>
+                        <option value="usb">USB</option>
+                    </select>
+                    
+                    <button class="connect-btn disconnected" id="connectBtn">
+                        Connect
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Pin Control Panel -->
+            <div class="panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-sliders-h"></i>
+                    Pin Control
+                </h2>
+                
+                <!-- Digital Pins -->
+                <h3 style="margin-bottom: 15px; color: #333;">Digital Pins (0-13)</h3>
+                <div class="digital-pins" id="digitalPins">
+                    <!-- Digital pins will be generated by JavaScript -->
+                </div>
+                
+                <!-- Analog Pins -->
+                <div class="analog-section">
+                    <h3 style="margin-bottom: 15px; color: #333;">Analog Pins (A0-A5)</h3>
+                    <div class="analog-pins" id="analogPins">
+                        <!-- Analog pins will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="panel">
+                <!-- Main Controls -->
+                <h2 class="panel-title">
+                    <i class="fas fa-gamepad"></i>
+                    Main Controls
+                </h2>
+                
+                <div class="control-grid">
+                    <button class="control-btn run" id="runBtn">
+                        <i class="fas fa-play"></i>
+                        <span>Run</span>
+                    </button>
+                    <button class="control-btn stop" id="stopBtn">
+                        <i class="fas fa-stop"></i>
+                        <span>Stop</span>
+                    </button>
+                    <button class="control-btn" id="resetBtn">
+                        <i class="fas fa-redo"></i>
+                        <span>Reset</span>
+                    </button>
+                    <button class="control-btn" id="uploadBtn">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload</span>
+                    </button>
+                </div>
+                
+                <!-- Sensors & Modules -->
+                <h2 class="panel-title" style="margin-top: 25px;">
+                    <i class="fas fa-microscope"></i>
+                    Sensors & Modules
+                </h2>
+                
+                <div class="sensor-grid">
+                    <button class="sensor-btn">
+                        <i class="fas fa-thermometer-half"></i>
+                        <span>Temp</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Light</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Sound</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-camera"></i>
+                        <span>Camera</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-microphone"></i>
+                        <span>Mic</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-rss"></i>
+                        <span>RFID</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-bolt"></i>
+                        <span>Motion</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Heart</span>
+                    </button>
+                    <button class="sensor-btn">
+                        <i class="fas fa-wifi"></i>
+                        <span>WiFi</span>
+                    </button>
+                </div>
+                
+                <!-- Status Panel -->
+                <div class="status-panel">
+                    <h2 class="panel-title" style="margin-top: 25px;">
+                        <i class="fas fa-chart-bar"></i>
+                        Status
+                    </h2>
+                    
+                    <div class="status-items">
+                        <div class="status-item">
+                            <span class="status-label">Board Status</span>
+                            <span class="status-value offline" id="boardStatus">Offline</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Execution</span>
+                            <span class="status-value stopped" id="executionStatus">Stopped</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Active Pins</span>
+                            <span class="status-value" id="activePins">0 / 14</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Connection</span>
+                            <span class="status-value" id="connectionStatus">Bluetooth</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h2 class="quick-actions-title">
+                <i class="fas fa-bolt"></i>
+                Quick Actions
+            </h2>
+            
+            <div class="quick-actions-grid">
+                <button class="quick-action-btn">LED Blink</button>
+                <button class="quick-action-btn">Servo Control</button>
+                <button class="quick-action-btn">Motor Control</button>
+                <button class="quick-action-btn">Sensor Read</button>
+                <button class="quick-action-btn" style="background: linear-gradient(45deg, #ff6b6b, #ee5a52);">
+                    Emergency Stop
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let isConnected = false;
+        let isRunning = false;
+        let pinStates = {};
+        let analogValues = {};
+
+        // DOM Elements
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const connectBtn = document.getElementById('connectBtn');
+        const connectionType = document.getElementById('connectionType');
+        const digitalPins = document.getElementById('digitalPins');
+        const analogPins = document.getElementById('analogPins');
+        const runBtn = document.getElementById('runBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const boardStatus = document.getElementById('boardStatus');
+        const executionStatus = document.getElementById('executionStatus');
+        const activePins = document.getElementById('activePins');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        // Initialize the application
+        function init() {
+            createDigitalPins();
+            createAnalogPins();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Create digital pins
+        function createDigitalPins() {
+            digitalPins.innerHTML = '';
+            for (let i = 0; i <= 13; i++) {
+                const pinId = `D${i}`;
+                pinStates[pinId] = false;
+                
+                const pinElement = document.createElement('div');
+                pinElement.className = 'pin';
+                pinElement.innerHTML = `
+                    
+                        ${pinId}
+                    
+                    ${pinId}</span>
+                `;
+                digitalPins.appendChild(pinElement);
+            }
+        }
+
+        // Create analog pins
+        function createAnalogPins() {
+            analogPins.innerHTML = '';
+            for (let i = 0; i <= 5; i++) {
+                const pinId = `A${i}`;
+                analogValues[pinId] = 0;
+                
+                const pinElement = document.createElement('div');
+                pinElement.className = 'analog-pin';
+                pinElement.innerHTML = `
+                    ${pinId}</span>
+                    <input type="range" class="analog-slider" data-pin="${pinId}" min="0" max="1023" value="0">
+                    0</span>
+                `;
+                analogPins.appendChild(pinElement);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Connect button
+            connectBtn.addEventListener('click', toggleConnection);
+            
+            // Digital pin buttons
+            digitalPins.addEventListener('click', (e) => {
+                if (e.target.classList.contains('pin-btn')) {
+                    const pin = e.target.dataset.pin;
+                    togglePin(pin);
+                }
+            });
+            
+            // Analog sliders
+            analogPins.addEventListener('input', (e) => {
+                if (e.target.classList.contains('analog-slider')) {
+                    const pin = e.target.dataset.pin;
+                    const value = parseInt(e.target.value);
+                    updateAnalogValue(pin, value);
+                }
+            });
+            
+            // Control buttons
+            runBtn.addEventListener('click', startExecution);
+            stopBtn.addEventListener('click', stopExecution);
+            resetBtn.addEventListener('click', resetBoard);
+            
+            // Connection type change
+            connectionType.addEventListener('change', () => {
+                connectionStatus.textContent = connectionType.value.charAt(0).toUpperCase() + connectionType.value.slice(1);
+            });
+        }
+
+        // Toggle connection status
+        function toggleConnection() {
+            isConnected = !isConnected;
+            updateUI();
+        }
+
+        // Toggle pin state
+        function togglePin(pin) {
+            if (!isConnected) return;
+            
+            pinStates[pin] = !pinStates[pin];
+            const pinBtn = document.querySelector(`[data-pin="${pin}"]`);
+            pinBtn.classList.toggle('active', pinStates[pin]);
+            updateActivePins();
+        }
+
+        // Update analog value
+        function updateAnalogValue(pin, value) {
+            analogValues[pin] = value;
+            document.getElementById(`value-${pin}`).textContent = value;
+        }
+
+        // Start execution
+        function startExecution() {
+            if (!isConnected) return;
+            
+            isRunning = true;
+            updateUI();
+        }
+
+        // Stop execution
+        function stopExecution() {
+            isRunning = false;
+            updateUI();
+        }
+
+        // Reset board
+        function resetBoard() {
+            // Reset pin states
+            Object.keys(pinStates).forEach(pin => {
+                pinStates[pin] = false;
+            });
+            
+            // Reset analog values
+            Object.keys(analogValues).forEach(pin => {
+                analogValues[pin] = 0;
+            });
+            
+            // Update UI
+            document.querySelectorAll('.pin-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.analog-slider').forEach(slider => {
+                slider.value = 0;
+            });
+            
+            document.querySelectorAll('.analog-value').forEach(span => {
+                span.textContent = '0';
+            });
+            
+            isRunning = false;
+            updateUI();
+        }
+
+        // Update active pins count
+        function updateActivePins() {
+            const activeCount = Object.values(pinStates).filter(state => state).length;
+            activePins.textContent = `${activeCount} / 14`;
+        }
+
+        // Update UI based on state
+        function updateUI() {
+            // Update connection status
+            if (isConnected) {
+                statusIndicator.classList.add('connected');
+                statusIndicator.classList.remove('disconnected');
+                statusText.textContent = 'Connected';
+                connectBtn.textContent = 'Disconnect';
+                connectBtn.classList.remove('disconnected');
+                boardStatus.textContent = 'Online';
+                boardStatus.classList.remove('offline');
+                boardStatus.classList.add('online');
+            } else {
+                statusIndicator.classList.remove('connected');
+                statusIndicator.classList.add('disconnected');
+                statusText.textContent = 'Disconnected';
+                connectBtn.textContent = 'Connect';
+                connectBtn.classList.add('disconnected');
+                boardStatus.textContent = 'Offline';
+                boardStatus.classList.remove('online');
+                boardStatus.classList.add('offline');
+            }
+            
+            // Update execution status
+            if (isRunning) {
+                executionStatus.textContent = 'Running';
+                executionStatus.classList.remove('stopped');
+                executionStatus.classList.add('running');
+                runBtn.classList.add('active');
+                stopBtn.classList.remove('active');
+            } else {
+                executionStatus.textContent = 'Stopped';
+                executionStatus.classList.remove('running');
+                executionStatus.classList.add('stopped');
+                runBtn.classList.remove('active');
+                stopBtn.classList.add('active');
+            }
+            
+            // Update active pins
+            updateActivePins();
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
